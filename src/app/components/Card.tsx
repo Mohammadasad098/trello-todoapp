@@ -24,7 +24,7 @@ export default function Card({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 flex flex-col items-center w-full sm:w-[300px] transition-all duration-300">
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 flex flex-col items-center w-full sm:w-[300px] transition-all duration-300 self-start">
       <h3 className="text-xl font-semibold text-gray-700 mb-4 text-center break-words">
         {title}
       </h3>

@@ -139,9 +139,9 @@ export default function Home() {
 
       {/* Cards Section */}
       <div className="min-h-screen flex flex-col items-center bg-gray-100 px-4 pt-10 pb-20">
-        {/* Center the first 3 cards */}
-        <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl">
-          {lists.map((list, index) => (
+        {/* Each card grows independently now */}
+        <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl items-start">
+          {lists.map((list) => (
             <Card
               key={list.id}
               id={list.id}
