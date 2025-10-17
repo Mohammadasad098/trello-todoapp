@@ -2,7 +2,23 @@
 
 import { useState, FormEvent } from "react";
 import Card from "./components/Card";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { toast } from 'react-toastify';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItem } from "./components/SortableItem";
 
 interface List {
   id: string;
@@ -38,6 +54,7 @@ export default function Home() {
       )
     );
     setTaskInput("");
+    toast.success("Card Add successfully");
   };
 
   const deleteTask = (index: number, id: string) => {
@@ -48,6 +65,7 @@ export default function Home() {
           : list
       )
     );
+    toast.success("Card Delete Successfully")
   };
 
   const addTaskToList = (id: string, newTask: string) => {
@@ -59,6 +77,7 @@ export default function Home() {
           : list
       )
     );
+    toast.success("Card Added successfully");
   };
 
   const startEditing = (id: string, index: number, currentValue: string) => {
@@ -71,16 +90,17 @@ export default function Home() {
       prevLists.map((list) =>
         list.id === editingTask.id && editingTask.index !== null
           ? {
-              ...list,
-              tasks: list.tasks.map((task, i) =>
-                i === editingTask.index ? editValue : task
-              ),
-            }
+            ...list,
+            tasks: list.tasks.map((task, i) =>
+              i === editingTask.index ? editValue : task
+            ),
+          }
           : list
       )
     );
     setEditingTask({ id: "", index: null });
     setEditValue("");
+    toast.success("Card Updated Successfully");
   };
 
   const handleAddNewList = () => {
@@ -93,7 +113,35 @@ export default function Home() {
     setLists([...lists, newList]);
     setNewListTitle("");
     setShowAddListInput(false);
+    toast.success("List Add sucessfully")
   };
+
+
+
+
+  // dnd work start
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+
+  function handleDragEnd(event: { active: any; over: any; }) {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setLists((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+
+  // dnd work end
 
   return (
     <>
@@ -104,7 +152,6 @@ export default function Home() {
           </span>
         </h1>
 
-        {/* Add Task Form */}
         <form
           onSubmit={handleAddTask}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-3xl mx-auto"
@@ -135,31 +182,8 @@ export default function Home() {
             Add Task
           </button>
         </form>
-      </div>
 
-      {/* Cards Section */}
-      <div className="min-h-screen flex flex-col items-center bg-gray-100 px-4 pt-10 pb-20">
-        {/* Each card grows independently now */}
-        <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl items-start">
-          {lists.map((list) => (
-            <Card
-              key={list.id}
-              id={list.id}
-              title={list.title}
-              tasks={list.tasks}
-              onDelete={deleteTask}
-              onAddTask={(task: string) => addTaskToList(list.id, task)}
-              onEdit={startEditing}
-              editingTask={editingTask}
-              editValue={editValue}
-              setEditValue={setEditValue}
-              saveEdit={saveEdit}
-            />
-          ))}
-        </div>
-
-        {/* Add New List Section */}
-        <div className="mt-10">
+        <div className="mt-6 flex justify-center">
           {showAddListInput ? (
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <input
@@ -179,7 +203,7 @@ export default function Home() {
                 onClick={() => setShowAddListInput(false)}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg"
               >
-                Cancel
+                <X />
               </button>
             </div>
           ) : (
@@ -192,6 +216,39 @@ export default function Home() {
           )}
         </div>
       </div>
+      <div className="min-h-screen flex flex-col items-center bg-gray-100 px-4 pt-10 pb-20">
+        <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl items-start">
+          {/* dnd work start */}
+          <DndContext sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}>
+            <SortableContext items={lists} strategy={verticalListSortingStrategy}>
+              {/* dnd work end */}
+              {lists.map((list) => (
+                <Card
+                  key={list.id}
+                  id={list.id}
+                  title={list.title}
+                  tasks={list.tasks}
+                  onDelete={deleteTask}
+                  onAddTask={(task: string) => addTaskToList(list.id, task)}
+                  onEdit={startEditing}
+                  editingTask={editingTask}
+                  editValue={editValue}
+                  setEditValue={setEditValue}
+                  saveEdit={saveEdit}
+                />
+              ))}
+              {/* dnd work start */}
+            </SortableContext>
+          </DndContext>
+          {/* dnd work end */}
+        </div>
+      </div>
     </>
   );
 }
+
+
+
+
